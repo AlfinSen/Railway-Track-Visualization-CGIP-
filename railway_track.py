@@ -3,13 +3,20 @@ import matplotlib.patches as patches
 import numpy as np
 
 def project(x, y, z, f=2.0):
-    """3D to 2D projection."""
-    if z <= 0.1: return None, None
-    factor = f / z
+    """
+    3D to 2D Perspective Projection function.
+    Calculates where a 3D coordinate (x, y, z) should appear on a flat 2D screen.
+    'f' acts as the Focal Length (field of view/zoom scale) of the virtual camera.
+    """
+    if z <= 0.1: return None, None  # Hide objects that clip behind the camera
+    factor = f / z                  # Inverse scaling. Farther objects (high z) shrink.
     return x * factor, y * factor
 
 def create_quad(ax, x, y, z, w, h, color, f=2.0):
-    """Creates a 2D polygon from 3D rectangle coordinates on the given axes."""
+    """
+    Creates a 2D Matplotlib polygon shape representing a 3D rectangle in perspective.
+    It takes the center coordinates and maps out four corners, projecting them to 2D.
+    """
     points = [
         project(x - w/2, y, z, f), project(x + w/2, y, z, f),
         project(x + w/2, y + h, z, f), project(x - w/2, y + h, z, f)
@@ -36,7 +43,8 @@ def main():
     for cx, cy, rx, ry in cloud_data:
         ax.add_patch(patches.Ellipse((cx, cy), rx*2, ry*2, color='white', alpha=0.8))
 
-    # Tracks (Two parallel lines)
+    # Tracks (Two parallel lines extending into the Z-axis)
+    # The focal length defines how sharply the tracks converge into the distance
     focal_length = 2.0
     rail_z = np.linspace(1, 40, 50)
     for dx in [-0.5, 0.5]:

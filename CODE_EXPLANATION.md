@@ -49,9 +49,16 @@ To create a vibrant atmosphere without impacting animation performance, static l
 * **Sun & Clouds**: Simple Matplotlib primitives—`Circle` for the yellow sun, and grouped `Ellipse` patches for overlapping fluffy clouds—are placed statically in the sky.
 
 ### Drawing the World with Perspective
-Objects in the static world that require depth still use the `project()` system:
-* **Tracks / Rails**: Long lines are generated using an array of `z` points (`np.linspace(1, 40, 50)`). 
-* **Sleepers (Crossbeams)**: By calculating crossbeam shapes at different `z` intervals, we enhance the depth. We dynamically adjust their line thickness based on proximity: `lw = max(1, 4 / z)`. Close sleepers look thicker, distant sleepers look finer.
+Objects in the static world that require depth still use the `project()` system. To explicitly dictate pixel placement for lines instead of relying purely on Matplotlib’s default engine, this project implements a manual line generation algorithm:
+
+#### Bresenham's Line Algorithm (`bresenham_line`)
+To draw straight lines (like the tracks) across the grid of pixels that makes up a screen, the code uses a custom implementation of Bresenham's Line Algorithm. 
+* It scales floating-point coordinates onto an integer grid space.
+* It uses only fast integer operations (additions, subtractions, and bitwise checking) to decide exactly which sequential "pixels" (points) must be lit to form the line.
+* It returns an array of these integer coordinates to reliably construct the lines.
+
+* **Tracks / Rails**: The start and end positions `(z=1 to z=40)` are calculated using the 3D perspective projection. Those start and end screen coordinates are then fed into the `bresenham_line()` algorithm to generate the full sequence of points needed to shape the rail lines.
+* **Sleepers (Crossbeams)**: Similar to the rails, start and end points of each crossbeam are determined using projection. The line is then assembled pointwise using the Bresenham function. We also dynamically adjust their line thickness based on proximity: `lw = max(1, 4 / z)`. Close sleepers look thicker, distant sleepers look finer.
 * **Pine Trees**: Placed at specific `z` intervals alongside the tracks. Each tree consists of one brown `create_quad` trunk, and three layered, standard `Polygon` triangles for pine leaves. The triangles' width is dynamically shrunken at higher `y` offsets to create a conical shape.
 
 ---
